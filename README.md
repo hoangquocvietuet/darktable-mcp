@@ -10,7 +10,7 @@ The AI runs in your MCP client (Claude Desktop, Claude Code, or any other client
 - Work the library: search by filename and rating, tag, add notes, list collections, rate, apply styles (presets).
 - Pull photos off a camera over USB with `gphoto2`, without overwriting files that share a name.
 - Export JPEG, PNG or TIFF through `darktable-cli`, even while the darktable window is open.
-- Edit the image open in the darkroom: read and set module parameters, blend settings, masks, retouch shapes, and compare LUTs. This part needs the [patched darktable build](https://github.com/rfordinal/darktable-agentic/tree/agentic-mcp) and does not work on stock darktable.
+- Edit the image open in the darkroom: read and set module parameters, blend settings, masks, retouch shapes, and compare LUTs. This part needs the [patched darktable build](https://github.com/hoangquocvietuet/darktable-agentic/tree/agentic-mcp) and does not work on stock darktable.
 
 ## Example prompts
 
@@ -25,15 +25,17 @@ The AI runs in your MCP client (Claude Desktop, Claude Code, or any other client
 Requirements: Python 3.10 or newer, darktable 4.0 or newer with `darktable-cli` on your `PATH`, and an MCP client. Linux is the main target; macOS works except for camera import. The plugin installer writes to `~/.config/darktable/`, so Windows is not supported, and `gphoto2` (needed for camera import) has no Windows build.
 
 ```bash
-pip install 'git+https://github.com/w1ne/darktable-mcp'
+pip install 'git+https://github.com/hoangquocvietuet/darktable-mcp'
 # Optional: raw preview and sidecar rating tools (needs libraw and libexiv2)
-pip install 'darktable-mcp[vision] @ git+https://github.com/w1ne/darktable-mcp'
+pip install 'darktable-mcp[vision] @ git+https://github.com/hoangquocvietuet/darktable-mcp'
 
 # Install the Lua plugin into ~/.config/darktable/, then restart darktable
 darktable-mcp install-plugin
 ```
 
 The package is not on PyPI yet. Leave darktable open while you use the library tools: they talk to the running instance through the plugin.
+
+The patched build is best run with its own config dir (`darktable --configdir ~/.config/darktable-agentic`) so it does not share a library with a stock darktable. `install-plugin` only writes to `~/.config/darktable/`; for a separate config dir, copy `~/.config/darktable/luarc` and `~/.config/darktable/lua/darktable_mcp.lua` into it. Run only one darktable at a time: both would poll the same bridge directory.
 
 ### Claude Desktop
 
@@ -81,7 +83,7 @@ Subject segmentation (`mask_object`) uses SAM2 and MODNet through optional sidec
 ## Troubleshooting
 
 - **Library tools time out or say the bridge is not running.** darktable must be open, the plugin must be installed with `darktable-mcp install-plugin`, and darktable must have been restarted after that.
-- **Darkroom tools report a missing `darktable.develop`.** You are on a stock darktable. Those tools need the [patched build](https://github.com/rfordinal/darktable-agentic/tree/agentic-mcp). Library, export and rating tools work on stock darktable.
+- **Darkroom tools report a missing `darktable.develop`.** You are on a stock darktable. Those tools need the [patched build](https://github.com/hoangquocvietuet/darktable-agentic/tree/agentic-mcp). Library, export and rating tools work on stock darktable.
 - **Exported files have no edits.** Export reads edits from XMP sidecars. Turn on "write sidecar file for each image" in darktable's preferences.
 - **A rating written by `apply_ratings_batch` does not show in darktable.** For photos already in the library, darktable trusts its database over the sidecar. In the lighttable, use "selected image(s) > read sidecar files".
 - **`pip install` of the `[vision]` extra fails.** Install the system libraries `libraw` and `libexiv2` first.

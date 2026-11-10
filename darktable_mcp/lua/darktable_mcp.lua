@@ -1694,7 +1694,8 @@ local function handle(req)
   if not fn then
     return {id = req.id, error = "unknown method: " .. tostring(req.method)}
   end
-  if req.method:sub(1, 4) == "dev_" and type(dt.develop) ~= "table" then
+  -- darktable.develop is a Lua singleton (userdata), never a table
+  if req.method:sub(1, 4) == "dev_" and dt.develop == nil then
     return {id = req.id, error = "This editing tool requires patched darktable with the "
       .. "darktable.develop API (rfordinal/darktable-agentic). Library tools remain available."}
   end

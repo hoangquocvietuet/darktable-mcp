@@ -3471,6 +3471,40 @@ async def test_handle_attach_mask_warns_if_drawn_mask_not_enabled():
 
 
 @pytest.mark.asyncio
+async def test_handle_attach_mask_accepts_flexi_mask_mode():
+    """darktable >= 5.7 switches a drawn mask on as ENABLED|FLEXI (17), not
+    ENABLED|MASK (3); blend.c renders either. A flexi mask that is on must not
+    be reported as inert."""
+    server = DarktableMCPServer()
+    server.bridge = Mock()
+
+    def router(method, params, timeout=None):
+        if method == "dev_attach_mask":
+            return {
+                "ok": True,
+                "op": "bilat",
+                "instance": 1,
+                "formid": 42,
+                "operation": "union",
+                "mask_mode": 17,
+            }
+        if method == "dev_get_blend_params":
+            return {
+                "op": "bilat",
+                "instance": 1,
+                "opacity": 100.0,
+                "mask_mode": 17,
+                "blend_mode": 24,
+                "invert": False,
+            }
+        raise AssertionError(f"unexpected bridge call: {method}")
+
+    server.bridge.call.side_effect = router
+    result = await server._handle_attach_mask({"op": "bilat", "instance": 1, "formid": 42})
+    assert "WARNING" not in result[0].text
+
+
+@pytest.mark.asyncio
 async def test_handle_attach_mask_requires_formid():
     server = DarktableMCPServer()
     server.bridge = Mock()
