@@ -2366,6 +2366,18 @@ do
   dt.develop = develop
 end
 
+-- The real darktable.develop is a Lua singleton (userdata), not a table:
+-- the stock-darktable guard must let it through to the handler.
+do
+  local dt = require("darktable")
+  local develop = dt.develop
+  dt.develop = io.stdout -- any userdata stands in for the C singleton
+  local resp = internals.handle({id = "patched", method = "dev_version", params = {}})
+  assertTrue(resp.error == nil or string.find(resp.error, "patched darktable", 1, true) == nil,
+    "userdata darktable.develop is accepted as the patched editing API")
+  dt.develop = develop
+end
+
 -- ---- Report ----------------------------------------------------------------
 if #failures > 0 then
   io.stderr:write("FAILED:\n")

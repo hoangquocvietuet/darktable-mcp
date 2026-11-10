@@ -164,6 +164,9 @@ _DIRECT_MATTE_EXTS = {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".bmp", ".webp"}
 # 2026-07-27: wiring the group reference alone left it inert until the user
 # clicked the pencil icon by hand), not just trust the write succeeded.
 _DEVELOP_MASK_MASK = 1 << 1
+# darktable >= 5.7 (flexi masks) switches a drawn mask on as ENABLED|FLEXI
+# instead; blend.c's mode_drawn accepts either bit.
+_DEVELOP_MASK_FLEXI = 1 << 4
 
 
 def _inline_image_content(
@@ -5209,7 +5212,9 @@ class DarktableMCPServer:
         if blend.get("error"):
             return f"  WARNING: could not verify mask_mode after attach: {blend['error']}"
         mask_mode = blend.get("mask_mode")
-        if not isinstance(mask_mode, int) or not (mask_mode & _DEVELOP_MASK_MASK):
+        if not isinstance(mask_mode, int) or not (
+            mask_mode & (_DEVELOP_MASK_MASK | _DEVELOP_MASK_FLEXI)
+        ):
             return (
                 f"  WARNING: drawn mask is NOT enabled after attach (mask_mode={mask_mode}, "
                 f"reported={reported_mask_mode}) -- the mask exists but will have NO visible "
